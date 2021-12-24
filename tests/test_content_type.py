@@ -1,9 +1,10 @@
 from pytest import mark
 
-from webup import content_type, register_content_type
+from webup import set_content_type
+from webup.content_type import content_type
 
-register_content_type("jpeg3000", "image/jpeg3000")
-register_content_type("JPEG4000", "image/jpeg4000")
+set_content_type("jpeg3000", "image/jpeg3000")
+set_content_type("JPEG4000", "image/jpeg4000")
 
 
 @mark.parametrize(

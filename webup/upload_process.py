@@ -15,7 +15,7 @@ class Upload(Process):
         path: str,
         queue: "Queue[UploadResult]",
         read_only: bool,
-        region: str,
+        region: str | None,
     ) -> None:
 
         super().__init__()
@@ -51,8 +51,10 @@ class Upload(Process):
         # Create the client even if we're running read-only to verify that our
         # credentials at least *seem* okay at first glance.
 
+        session = Session(region_name=self.region) if self.region else Session()
+
         # pyright: reportUnknownMemberType=false
-        s3 = Session(region_name=self.region).client("s3")
+        s3 = session.client("s3")
 
         with open(self.path, "rb") as fp:
             if self.read_only:

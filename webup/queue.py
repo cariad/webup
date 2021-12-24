@@ -7,18 +7,13 @@ from typing import List
 from webup.cache_control import cache_control
 from webup.content_type import content_type
 from webup.files import Files
-from webup.models import DirectoryUploadResult, UploadResult
+from webup.models import UploadResult
 from webup.upload_process import Upload
 
 _logger = getLogger("webup")
 
 
-def check_for_done(
-    queue: "Queue[UploadResult]",
-    timeout: float | None,
-    wip: List[str],
-) -> None:
-
+def check(queue: "Queue[UploadResult]", timeout: float | None, wip: List[str]) -> None:
     try:
         result = queue.get(block=(timeout is not None), timeout=timeout)
     except Empty:
@@ -41,12 +36,23 @@ def check_for_done(
 
 
 def upload(
-    bucket: str,
     dir: str | Path,
-    region: str,
+    bucket: str,
     concurrent_uploads: int = 8,
     read_only: bool = False,
-) -> DirectoryUploadResult:
+    region: str | None = None,
+) -> None:
+    """
+    Uploads the local directory `dir` to the S3 bucket `bucket`.
+
+    If `region` is not set then the default region will be used.
+
+    `concurrent_uploads` describes the maximum number of concurrent upload
+    threads to allow.
+
+    If `read_only` is truthy then directories will be walked and files will be
+    read, but nothing will be uploaded.
+    """
 
     if isinstance(dir, str):
         dir = Path(dir)
@@ -74,7 +80,7 @@ def upload(
             # If we *can* take on more work then don't wait; hurry up and add
             # more threads. Wait only when there's nothing more we can do.
             timeout = 1 if full else None
-            check_for_done(queue=queue, timeout=timeout, wip=wip)
+            check(queue=queue, timeout=timeout, wip=wip)
 
         if full:
             continue
@@ -100,6 +106,4 @@ def upload(
 
         if not wip:
             _logger.debug("No files remaining. Upload complete.")
-            return DirectoryUploadResult(
-                process_count=process_count,
-            )
+            return

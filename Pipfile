@@ -10,9 +10,11 @@ flake8 = "*"
 isort = "*"
 mock = "*"
 mypy = "*"
+pdoc = "*"
 pytest = "*"
 pytest-cov = "*"
 shellcheck-py = "*"
+twine = "*"
 types-mock = "*"
 yamllint = "*"
 
@@ -24,4 +26,4 @@ python_version = "3.10"
 
 [scripts]
 lint = "./scripts/lint.sh"
-test = "pytest -vv"
+test = "./scripts/test.sh"

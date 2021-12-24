@@ -4,10 +4,19 @@ from webup.suffix import normalize_suffix
 
 _max_ages: Dict[str, int] = {}
 
-default_max_age = 60
-"""
-Default maximum age in seconds.
-"""
+_default_max_age = -1
+
+
+def set_default_maximum_age(seconds: int = 60) -> None:
+    """
+    Sets the Cache-Control "max-age" value for files not registered via
+    `set_maximum_age`.
+
+    Defaults to 60 seconds.
+    """
+
+    global _default_max_age
+    _default_max_age = seconds
 
 
 def cache_control(suffix: str) -> str:
@@ -30,16 +39,19 @@ def max_age(suffix: str) -> int:
     """
 
     suffix = normalize_suffix(suffix)
-    return _max_ages.get(suffix, default_max_age)
+    return _max_ages.get(suffix, _default_max_age)
 
 
-def register_max_age(suffix: str, max_age: int) -> None:
+def set_maximum_age(suffix: str, seconds: int) -> None:
     """
-    Registers the maximum age of a type of file.
+    Sets the "max-age" value of the Cache-Control header for files with the
+    `suffix` filename extension.
 
-    Arguments:
-        suffix: Filename suffix.
+    There are no per-suffix ages set by default.
     """
 
     suffix = normalize_suffix(suffix)
-    _max_ages[suffix] = max_age
+    _max_ages[suffix] = seconds
+
+
+set_default_maximum_age()
