@@ -7,6 +7,7 @@ from webup.cache_control import (
     register_max_age,
 )
 from webup.content_type import content_type, register_content_type
+from webup.queue import upload
 
 with importlib.resources.open_text(__package__, "VERSION") as t:
     __version__ = t.readline().strip()
@@ -18,4 +19,5 @@ __all__ = [
     "max_age",
     "register_content_type",
     "register_max_age",
+    "upload",
 ]
