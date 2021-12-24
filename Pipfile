@@ -8,10 +8,12 @@ black = "==21.12b0"
 boto3-stubs = {extras = ["s3"], version = "~=1.20"}
 flake8 = "*"
 isort = "*"
+mock = "*"
 mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 shellcheck-py = "*"
+types-mock = "*"
 yamllint = "*"
 
 [packages]
