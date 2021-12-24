@@ -11,10 +11,10 @@ def test() -> None:
     for _ in range(4):
         file = files.next
         assert file in [
-            File(key="1.txt", path=walkable / "1.txt"),
-            File(key="2.txt", path=walkable / "2.txt"),
-            File(key="sub/1.txt", path=walkable / "sub" / "1.txt"),
-            File(key="sub/2.txt", path=walkable / "sub" / "2.txt"),
+            File(key="index.html", path=walkable / "index.html"),
+            File(key="style.css", path=walkable / "style.css"),
+            File(key="images/image.jpg", path=walkable / "images" / "image.jpg"),
+            File(key="images/image.png", path=walkable / "images" / "image.png"),
         ]
 
     assert files.next is None
