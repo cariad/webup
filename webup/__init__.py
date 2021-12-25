@@ -1,9 +1,9 @@
 """
-**WebUp** is a Python package for uploading files to Amazon Web Services S3
+**WebUp** is a Python package for uploading websites to Amazon Web Services S3
 buckets.
 
-**WebUp** uploads directories recursively, and sets Cache-Control and
-Content-Type HTTP headers ready for serving on the web.
+**WebUp** uploads directories recursively and sets Cache-Control and
+Content-Type HTTP headers.
 
 ## Default Cache-Control headers
 
