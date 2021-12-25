@@ -21,9 +21,12 @@
 
                     <h2>Contents</h2>
                     <ul>
-  <li><a href="#default-cache-control-headers">Default Cache-Control headers</a></li>
-  <li><a href="#default-content-type-headers">Default Content-Type headers</a></li>
-  <li><a href="#example">Example</a></li>
+  <li><a href="#usage">Usage</a></li>
+  <li><a href="#configuration">Configuration</a>
+  <ul>
+    <li><a href="#cache-control-headers">Cache-Control headers</a></li>
+    <li><a href="#content-type-headers">Content-Type headers</a></li>
+  </ul></li>
 </ul>
 
 
@@ -62,13 +65,55 @@
                     <h1 class="modulename">
 webup    </h1>
 
-                        <div class="docstring"><p><strong>WebUp</strong> is a Python package for uploading files to Amazon Web Services S3
+                        <div class="docstring"><p><strong>WebUp</strong> is a Python package for uploading websites to Amazon Web Services S3
 buckets.</p>
 
-<p><strong>WebUp</strong> uploads directories recursively, and sets Cache-Control and
-Content-Type HTTP headers ready for serving on the web.</p>
+<ul>
+<li>Uploads files and subdirectories</li>
+<li>Multi-threaded for concurrent parallel uploads</li>
+<li>Sets Cache-Control and Content-Type headers</li>
+</ul>
 
-<h2 id="default-cache-control-headers">Default Cache-Control headers</h2>
+<h2 id="usage">Usage</h2>
+
+<p>To upload a directory with the default configuration:</p>
+
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">webup</span> <span class="kn">import</span> <span class="n">upload</span>
+
+<span class="n">upload</span><span class="p">(</span><span class="s2">&quot;./public&quot;</span><span class="p">,</span> <span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Some content types are baked-in. To add more content types:</p>
+
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">webup</span> <span class="kn">import</span> <span class="n">set_content_type</span><span class="p">,</span> <span class="n">upload</span>
+
+<span class="n">set_content_type</span><span class="p">(</span><span class="s2">&quot;.foo&quot;</span><span class="p">,</span> <span class="s2">&quot;application/foo&quot;</span><span class="p">)</span>
+<span class="n">upload</span><span class="p">(</span><span class="s2">&quot;./public&quot;</span><span class="p">,</span> <span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p>All files have the Cache-Control value "max-age=60" by default. To configure this:</p>
+
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">webup</span> <span class="kn">import</span> <span class="n">set_default_maximum_age</span><span class="p">,</span> <span class="n">set_maximum_age</span><span class="p">,</span> <span class="n">upload</span>
+
+<span class="c1"># Serve *.css files with Cache-Control &quot;max-age=600&quot;:</span>
+<span class="n">set_maximum_age</span><span class="p">(</span><span class="s2">&quot;.css&quot;</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+
+<span class="c1"># Serve all other files with Cache-Control &quot;max-age=300&quot;:</span>
+<span class="n">set_default_maximum_age</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+
+<span class="n">upload</span><span class="p">(</span><span class="s2">&quot;./public&quot;</span><span class="p">,</span> <span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p>To perform a dry-run:</p>
+
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">webup</span> <span class="kn">import</span> <span class="n">upload</span>
+
+<span class="n">upload</span><span class="p">(</span><span class="s2">&quot;./public&quot;</span><span class="p">,</span> <span class="s2">&quot;my-bucket&quot;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+<h2 id="configuration">Configuration</h2>
+
+<h3 id="cache-control-headers">Cache-Control headers</h3>
 
 <p>By default, every object will be assigned the Cache-Control header "max-age=60".</p>
 
@@ -76,7 +121,7 @@ Content-Type HTTP headers ready for serving on the web.</p>
 
 <p>To set the default content type, call <code><a href="#set_default_maximum_age">set_default_maximum_age</a></code>.</p>
 
-<h2 id="default-content-type-headers">Default Content-Type headers</h2>
+<h3 id="content-type-headers">Content-Type headers</h3>
 
 <table>
 <thead>
@@ -132,35 +177,62 @@ Content-Type HTTP headers ready for serving on the web.</p>
 <p>To add additional content types, call <code><a href="#set_content_type">set_content_type</a></code>.</p>
 
 <p>To set the default content type, call <code><a href="#set_default_content_type">set_default_content_type</a></code>.</p>
-
-<h2 id="example">Example</h2>
-
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">webup</span> <span class="kn">import</span> <span class="n">set_default_maximum_age</span><span class="p">,</span> <span class="n">upload</span>
-
-<span class="c1"># CSS file caches should expire after 10 minutes:</span>
-<span class="n">add_maximum_age</span><span class="p">(</span><span class="s2">&quot;.css&quot;</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
-
-<span class="c1"># All other cached files should expire after 5 minutes:</span>
-<span class="n">set_default_maximum_age</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
-
-<span class="c1"># Perform a dry-run upload of the ./public directory to &quot;my-bucket&quot;:</span>
-<span class="n">upload</span><span class="p">(</span><span class="s2">&quot;./public&quot;</span><span class="p">,</span> <span class="s2">&quot;my-bucket&quot;</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="c1"># Now *really* upload it:</span>
-<span class="n">upload</span><span class="p">(</span><span class="s2">&quot;./public&quot;</span><span class="p">,</span> <span class="s2">&quot;my-bucket&quot;</span><span class="p">)</span>
-</code></pre></div>
 </div>
 
                         <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">**WebUp** is a Python package for uploading files to Amazon Web Services S3</span>
+<span class="sd">**WebUp** is a Python package for uploading websites to Amazon Web Services S3</span>
 <span class="sd">buckets.</span>
 
-<span class="sd">**WebUp** uploads directories recursively, and sets Cache-Control and</span>
-<span class="sd">Content-Type HTTP headers ready for serving on the web.</span>
+<span class="sd">- Uploads files and subdirectories</span>
+<span class="sd">- Multi-threaded for concurrent parallel uploads</span>
+<span class="sd">- Sets Cache-Control and Content-Type headers</span>
 
-<span class="sd">## Default Cache-Control headers</span>
+<span class="sd">## Usage</span>
+
+<span class="sd">To upload a directory with the default configuration:</span>
+
+<span class="sd">```python</span>
+<span class="sd">from webup import upload</span>
+
+<span class="sd">upload(&quot;./public&quot;, &quot;my-bucket&quot;)</span>
+<span class="sd">```</span>
+
+<span class="sd">Some content types are baked-in. To add more content types:</span>
+
+<span class="sd">```python</span>
+<span class="sd">from webup import set_content_type, upload</span>
+
+<span class="sd">set_content_type(&quot;.foo&quot;, &quot;application/foo&quot;)</span>
+<span class="sd">upload(&quot;./public&quot;, &quot;my-bucket&quot;)</span>
+<span class="sd">```</span>
+
+<span class="sd">All files have the Cache-Control value &quot;max-age=60&quot; by default. To configure this:</span>
+
+<span class="sd">```python</span>
+<span class="sd">from webup import set_default_maximum_age, set_maximum_age, upload</span>
+
+<span class="sd"># Serve *.css files with Cache-Control &quot;max-age=600&quot;:</span>
+<span class="sd">set_maximum_age(&quot;.css&quot;, 600)</span>
+
+<span class="sd"># Serve all other files with Cache-Control &quot;max-age=300&quot;:</span>
+<span class="sd">set_default_maximum_age(300)</span>
+
+<span class="sd">upload(&quot;./public&quot;, &quot;my-bucket&quot;)</span>
+<span class="sd">```</span>
+
+<span class="sd">To perform a dry-run:</span>
+
+<span class="sd">```python</span>
+<span class="sd">from webup import upload</span>
+
+<span class="sd">upload(&quot;./public&quot;, &quot;my-bucket&quot;, read_only=True)</span>
+<span class="sd">```</span>
+
+<span class="sd">## Configuration</span>
+
+<span class="sd">### Cache-Control headers</span>
 
 <span class="sd">By default, every object will be assigned the Cache-Control header &quot;max-age=60&quot;.</span>
 
@@ -168,7 +240,7 @@ Content-Type HTTP headers ready for serving on the web.</p>
 
 <span class="sd">To set the default content type, call `set_default_maximum_age`.</span>
 
-<span class="sd">## Default Content-Type headers</span>
+<span class="sd">### Content-Type headers</span>
 
 <span class="sd">| Filename&amp;nbsp; | Content-Type                 |</span>
 <span class="sd">|----------------|------------------------------|</span>
@@ -186,25 +258,6 @@ Content-Type HTTP headers ready for serving on the web.</p>
 <span class="sd">To add additional content types, call `set_content_type`.</span>
 
 <span class="sd">To set the default content type, call `set_default_content_type`.</span>
-
-
-<span class="sd">## Example</span>
-
-<span class="sd">```python</span>
-<span class="sd">from webup import set_default_maximum_age, upload</span>
-
-<span class="sd"># CSS file caches should expire after 10 minutes:</span>
-<span class="sd">add_maximum_age(&quot;.css&quot;, 600)</span>
-
-<span class="sd"># All other cached files should expire after 5 minutes:</span>
-<span class="sd">set_default_maximum_age(300)</span>
-
-<span class="sd"># Perform a dry-run upload of the ./public directory to &quot;my-bucket&quot;:</span>
-<span class="sd">upload(&quot;./public&quot;, &quot;my-bucket&quot;, read_only=True)</span>
-
-<span class="sd"># Now *really* upload it:</span>
-<span class="sd">upload(&quot;./public&quot;, &quot;my-bucket&quot;)</span>
-<span class="sd">```</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">importlib.resources</span>

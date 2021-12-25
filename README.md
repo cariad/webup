@@ -1,5 +1,7 @@
 # WebUp
 
+[![CircleCI](https://circleci.com/gh/cariad/webup/tree/main.svg?style=shield)](https://circleci.com/gh/cariad/webup/tree/main) [![codecov](https://codecov.io/gh/cariad/webup/branch/main/graph/badge.svg?token=Gkqtgno072)](https://codecov.io/gh/cariad/webup)
+
 **WebUp** is a Python package for uploading websites to Amazon Web Services S3
 buckets.
 
