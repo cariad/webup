@@ -1,3 +1,4 @@
+from io import StringIO
 from logging import getLogger
 from multiprocessing import Queue
 from pathlib import Path
@@ -6,7 +7,7 @@ from mock import patch
 from pytest import mark, raises
 
 from webup import upload
-from webup.models import UploadResult
+from webup.models import Output, UploadResult
 from webup.queue import check
 
 getLogger("webup").setLevel("DEBUG")
@@ -51,6 +52,21 @@ def test_check__exception() -> None:
 
     assert not wip
     assert str(ex.value) == "fire"
+
+
+def test_check__output() -> None:
+    queue: "Queue[UploadResult]" = Queue(1)
+    queue.put(UploadResult(bucket="buck", path="./foo.bar", key="foo.bar"))
+
+    wip = ["foo.bar"]
+
+    out = StringIO()
+    output = Output(max_path=10, out=out)
+
+    check(output=output, queue=queue, timeout=2, wip=wip)
+
+    assert not wip
+    assert out.getvalue() == "./foo.bar  ~> s3:/buck/foo.bar\n"
 
 
 @mark.parametrize("dir", [(walkable), (walkable.as_posix())])

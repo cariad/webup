@@ -2,18 +2,24 @@ from logging import getLogger
 from multiprocessing import Queue
 from pathlib import Path
 from queue import Empty
-from typing import List
+from typing import IO, List
 
 from webup.cache_control import cache_control
 from webup.content_type import content_type
 from webup.files import Files
-from webup.models import UploadResult
+from webup.models import Output, UploadResult
 from webup.upload_process import Upload
 
 _logger = getLogger("webup")
 
 
-def check(queue: "Queue[UploadResult]", timeout: float | None, wip: List[str]) -> None:
+def check(
+    queue: "Queue[UploadResult]",
+    timeout: float | None,
+    wip: List[str],
+    output: Output | None = None,
+) -> None:
+
     try:
         result = queue.get(block=(timeout is not None), timeout=timeout)
     except Empty:
@@ -21,24 +27,25 @@ def check(queue: "Queue[UploadResult]", timeout: float | None, wip: List[str]) -
 
     wip.remove(result.key)
 
-    if not result.exception:
-        _logger.info("%s ~> s3:/%s/%s", result.path, result.bucket, result.key)
-        return
+    pad = output.max_path if output else len(result.path)
+    line = f"{result.path:<{pad}} ~> s3:/{result.bucket}/{result.key}"
 
-    _logger.error(
-        "%s ~> s3:/%s/%s",
-        result.path,
-        result.bucket,
-        result.key,
-        exc_info=result.exception,
-    )
-    raise result.exception
+    if result.exception:
+        _logger.error(line, exc_info=result.exception)
+        raise result.exception
+
+    _logger.info(line)
+
+    if output:
+        output.out.write(line)
+        output.out.write("\n")
 
 
 def upload(
     dir: str | Path,
     bucket: str,
     concurrent_uploads: int = 8,
+    out: IO[str] | None = None,
     read_only: bool = False,
     region: str | None = None,
 ) -> None:
@@ -49,6 +56,11 @@ def upload(
 
     `concurrent_uploads` describes the maximum number of concurrent upload
     threads to allow.
+
+    `out` describes an optional string writer for progress reports. The same
+    information will be available via logging, but this could be used for human-
+    readable output (especially of read-only runs) at run-time. To write
+    progress to the console, set to `sys.stdout`.
 
     If `read_only` is truthy then directories will be walked and files will be
     read, but nothing will be uploaded.
@@ -69,6 +81,7 @@ def upload(
     )
 
     files = Files(dir)
+    output = Output(max_path=files.max_path, out=out) if out else None
     process_count = 0
     queue: "Queue[UploadResult]" = Queue(concurrent_uploads)
     wip: List[str] = []
@@ -80,7 +93,7 @@ def upload(
             # If we *can* take on more work then don't wait; hurry up and add
             # more threads. Wait only when there's nothing more we can do.
             timeout = 1 if full else None
-            check(queue=queue, timeout=timeout, wip=wip)
+            check(output=output, queue=queue, timeout=timeout, wip=wip)
 
         if full:
             continue

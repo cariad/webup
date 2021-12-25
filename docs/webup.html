@@ -292,6 +292,7 @@ buckets.</p>
     dir: str | pathlib.Path,
     bucket: str,
     concurrent_uploads: int = 8,
+    out: Optional[IO[str]] = None,
     read_only: bool = False,
     region: str | None = None
 ) -&gt; None</span>:
@@ -303,6 +304,7 @@ buckets.</p>
     <span class="nb">dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">concurrent_uploads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="n">IO</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">read_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">region</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -313,6 +315,11 @@ buckets.</p>
 
 <span class="sd">    `concurrent_uploads` describes the maximum number of concurrent upload</span>
 <span class="sd">    threads to allow.</span>
+
+<span class="sd">    `out` describes an optional string writer for progress reports. The same</span>
+<span class="sd">    information will be available via logging, but this could be used for human-</span>
+<span class="sd">    readable output (especially of read-only runs) at run-time. To write</span>
+<span class="sd">    progress to the console, set to `sys.stdout`.</span>
 
 <span class="sd">    If `read_only` is truthy then directories will be walked and files will be</span>
 <span class="sd">    read, but nothing will be uploaded.</span>
@@ -333,6 +340,7 @@ buckets.</p>
     <span class="p">)</span>
 
     <span class="n">files</span> <span class="o">=</span> <span class="n">Files</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">Output</span><span class="p">(</span><span class="n">max_path</span><span class="o">=</span><span class="n">files</span><span class="o">.</span><span class="n">max_path</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span> <span class="k">if</span> <span class="n">out</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">process_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">queue</span><span class="p">:</span> <span class="s2">&quot;Queue[UploadResult]&quot;</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">(</span><span class="n">concurrent_uploads</span><span class="p">)</span>
     <span class="n">wip</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -344,7 +352,7 @@ buckets.</p>
             <span class="c1"># If we *can* take on more work then don&#39;t wait; hurry up and add</span>
             <span class="c1"># more threads. Wait only when there&#39;s nothing more we can do.</span>
             <span class="n">timeout</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">full</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="n">check</span><span class="p">(</span><span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">wip</span><span class="o">=</span><span class="n">wip</span><span class="p">)</span>
+            <span class="n">check</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="n">queue</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">,</span> <span class="n">wip</span><span class="o">=</span><span class="n">wip</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">full</span><span class="p">:</span>
             <span class="k">continue</span>
@@ -381,6 +389,11 @@ buckets.</p>
 
 <p><code>concurrent_uploads</code> describes the maximum number of concurrent upload
 threads to allow.</p>
+
+<p><code>out</code> describes an optional string writer for progress reports. The same
+information will be available via logging, but this could be used for human-
+readable output (especially of read-only runs) at run-time. To write
+progress to the console, set to <code>sys.stdout</code>.</p>
 
 <p>If <code>read_only</code> is truthy then directories will be walked and files will be
 read, but nothing will be uploaded.</p>
