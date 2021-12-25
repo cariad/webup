@@ -1,3 +1,4 @@
+from functools import cached_property
 from os import walk
 from pathlib import Path
 from typing import Iterator
@@ -14,6 +15,7 @@ class Files:
     """
 
     def __init__(self, dir: str | Path) -> None:
+        self._dir = dir
         self._iterator = self.iterator(dir)
 
     @staticmethod
@@ -34,6 +36,17 @@ class Files:
                 path = root_path / filename
                 key = path.relative_to(dir).as_posix()
                 yield File(path=path, key=key)
+
+    @cached_property
+    def max_path(self) -> int:
+        """
+        Gets the maximum path length.
+        """
+
+        best = 0
+        for file in self.iterator(self._dir):
+            best = max(best, len(file.path.as_posix()))
+        return best
 
     @property
     def next(self) -> File | None:

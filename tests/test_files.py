@@ -4,7 +4,7 @@ from webup.files import Files
 from webup.models import File
 
 
-def test() -> None:
+def test_next() -> None:
     walkable = Path(".") / "tests" / "walkable"
     files = Files(walkable)
 
@@ -18,3 +18,12 @@ def test() -> None:
         ]
 
     assert files.next is None
+
+
+def test_max_path() -> None:
+    walkable = Path(".") / "tests" / "walkable"
+    files = Files(walkable)
+
+    expect_path = walkable / "images" / "image.png"
+    expect = len(expect_path.as_posix())
+    assert files.max_path == expect
