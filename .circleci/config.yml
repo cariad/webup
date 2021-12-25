@@ -4,6 +4,23 @@ orbs:
   codecov: codecov/codecov@3.0.0
 
 jobs:
+  build:
+    docker:
+      - image: cimg/python:3.10.0
+    resource_class: xlarge
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - pipenv-{{ checksum "Pipfile.lock" }}
+            - pipenv-
+      - run: pipenv sync --dev
+      - run: pipenv run build
+      # Just verify it's installable.
+      - run: pip install dist/*
+      - run: if [[ -z "${CIRCLE_TAG}" ]]; then circleci-agent step halt; fi
+      - run: pipenv run twine upload dist/*
+
   lint:
     docker:
       - image: cimg/python:3.10.0
@@ -47,6 +64,15 @@ jobs:
 workflows:
   default:
     jobs:
+      - build:
+          context:
+            - python
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /.*/
+
       - lint:
           context:
             - python
