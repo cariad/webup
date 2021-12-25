@@ -1,8 +1,11 @@
 # WebUp
 
-**WebUp** is a Python package for uploading websites to Amazon Web Services S3 buckets.
+**WebUp** is a Python package for uploading websites to Amazon Web Services S3
+buckets.
 
-**WebUp** uploads directories recursively and sets Cache-Control and Content-Type HTTP headers.
+- Uploads files and subdirectories
+- Multi-threaded for concurrent parallel uploads
+- Sets Cache-Control and Content-Type headers
 
 **Full documentation is online at [cariad.github.io/webup](https://cariad.github.io/webup/webup.html).**
 

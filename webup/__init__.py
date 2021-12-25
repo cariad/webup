@@ -2,10 +2,54 @@
 **WebUp** is a Python package for uploading websites to Amazon Web Services S3
 buckets.
 
-**WebUp** uploads directories recursively and sets Cache-Control and
-Content-Type HTTP headers.
+- Uploads files and subdirectories
+- Multi-threaded for concurrent parallel uploads
+- Sets Cache-Control and Content-Type headers
 
-## Default Cache-Control headers
+## Usage
+
+To upload a directory with the default configuration:
+
+```python
+from webup import upload
+
+upload("./public", "my-bucket")
+```
+
+Some content types are baked-in. To add more content types:
+
+```python
+from webup import set_content_type, upload
+
+set_content_type(".foo", "application/foo")
+upload("./public", "my-bucket")
+```
+
+All files have the Cache-Control value "max-age=60" by default. To configure this:
+
+```python
+from webup import set_default_maximum_age, set_maximum_age, upload
+
+# Serve *.css files with Cache-Control "max-age=600":
+set_maximum_age(".css", 600)
+
+# Serve all other files with Cache-Control "max-age=300":
+set_default_maximum_age(300)
+
+upload("./public", "my-bucket")
+```
+
+To perform a dry-run:
+
+```python
+from webup import upload
+
+upload("./public", "my-bucket", read_only=True)
+```
+
+## Configuration
+
+### Cache-Control headers
 
 By default, every object will be assigned the Cache-Control header "max-age=60".
 
@@ -13,7 +57,7 @@ To set a maximum age per file type, call `set_maximum_age`.
 
 To set the default content type, call `set_default_maximum_age`.
 
-## Default Content-Type headers
+### Content-Type headers
 
 | Filename&nbsp; | Content-Type                 |
 |----------------|------------------------------|
@@ -31,25 +75,6 @@ To set the default content type, call `set_default_maximum_age`.
 To add additional content types, call `set_content_type`.
 
 To set the default content type, call `set_default_content_type`.
-
-
-## Example
-
-```python
-from webup import set_default_maximum_age, upload
-
-# CSS file caches should expire after 10 minutes:
-add_maximum_age(".css", 600)
-
-# All other cached files should expire after 5 minutes:
-set_default_maximum_age(300)
-
-# Perform a dry-run upload of the ./public directory to "my-bucket":
-upload("./public", "my-bucket", read_only=True)
-
-# Now *really* upload it:
-upload("./public", "my-bucket")
-```
 """
 
 import importlib.resources
