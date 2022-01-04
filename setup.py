@@ -37,6 +37,9 @@ setup(
     classifiers=classifiers,
     description="Uploads websites to Amazon Web Services S3 buckets",
     include_package_data=True,
+    install_requires=[
+        "boto3~=1.20",
+    ],
     license="MIT",
     long_description=long_description,
     long_description_content_type="text/markdown",
