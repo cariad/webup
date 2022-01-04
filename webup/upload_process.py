@@ -1,8 +1,7 @@
 from multiprocessing import Process, Queue
 
-from boto3.session import Session
-
 from webup.models import UploadResult
+from webup.session import make_session
 
 
 class Upload(Process):
@@ -50,11 +49,9 @@ class Upload(Process):
     def try_upload(self) -> None:
         # Create the client even if we're running read-only to verify that our
         # credentials at least *seem* okay at first glance.
-
-        session = Session(region_name=self.region) if self.region else Session()
-
+        #
         # pyright: reportUnknownMemberType=false
-        s3 = session.client("s3")
+        s3 = make_session(self.region).client("s3")
 
         with open(self.path, "rb") as fp:
             if self.read_only:
