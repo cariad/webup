@@ -27,6 +27,14 @@ from webup import upload
 upload("./public", "my-bucket")
 ```
 
+If the bucket's name is recorded in Systems Manager, pass a parameter name instead of a bucket name:
+
+```python
+from webup import upload
+
+upload("./public", ssm_param="/my-platform/buckets/website")
+```
+
 Some content types are baked-in. To add more content types:
 
 ```python

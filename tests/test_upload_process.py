@@ -7,9 +7,11 @@ from webup.upload_process import Upload
 
 getLogger("webup").setLevel("DEBUG")
 
+make_session_path = "webup.upload_process.make_session"
+
 
 def test_run(put: Mock, queue: Mock) -> None:
-    with patch("webup.upload_process.Session"):
+    with patch(make_session_path) as make_session:
         Upload(
             bucket="buck",
             cache_control="max-age=600",
@@ -21,6 +23,7 @@ def test_run(put: Mock, queue: Mock) -> None:
             region="eu-east-17",
         ).run()
 
+    make_session.assert_called_once_with("eu-east-17")
     put.assert_called_once_with(
         UploadResult(
             bucket="buck",
@@ -33,7 +36,7 @@ def test_run(put: Mock, queue: Mock) -> None:
 def test_run__fail(put: Mock, queue: Mock) -> None:
     exception = Exception("fire")
 
-    with patch("webup.upload_process.Session", side_effect=exception):
+    with patch(make_session_path, side_effect=exception) as make_session:
         Upload(
             bucket="buck",
             cache_control="max-age=600",
@@ -45,6 +48,7 @@ def test_run__fail(put: Mock, queue: Mock) -> None:
             region="eu-east-17",
         ).run()
 
+    make_session.assert_called_once_with("eu-east-17")
     put.assert_called_once_with(
         UploadResult(
             bucket="buck",
@@ -56,7 +60,7 @@ def test_run__fail(put: Mock, queue: Mock) -> None:
 
 
 def test_try_upload(client: Mock, put_object: Mock, session: Mock) -> None:
-    with patch("webup.upload_process.Session", return_value=session):
+    with patch(make_session_path, return_value=session) as make_session:
         Upload(
             bucket="buck",
             cache_control="max-age=600",
@@ -68,6 +72,7 @@ def test_try_upload(client: Mock, put_object: Mock, session: Mock) -> None:
             region="eu-east-17",
         ).run()
 
+    make_session.assert_called_once_with("eu-east-17")
     client.assert_called_once_with("s3")
 
     put_object.assert_called_once_with(
@@ -80,7 +85,7 @@ def test_try_upload(client: Mock, put_object: Mock, session: Mock) -> None:
 
 
 def test_try_upload__read_only(client: Mock, put_object: Mock, session: Mock) -> None:
-    with patch("webup.upload_process.Session", return_value=session):
+    with patch(make_session_path, return_value=session) as make_session:
         Upload(
             bucket="buck",
             cache_control="max-age=600",
@@ -92,5 +97,6 @@ def test_try_upload__read_only(client: Mock, put_object: Mock, session: Mock) ->
             region="eu-east-17",
         ).run()
 
+    make_session.assert_called_once_with("eu-east-17")
     client.assert_called_once_with("s3")
     put_object.assert_not_called()

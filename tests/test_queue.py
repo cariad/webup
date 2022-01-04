@@ -4,14 +4,34 @@ from multiprocessing import Queue
 from pathlib import Path
 
 from mock import patch
+from mock.mock import Mock
 from pytest import mark, raises
 
 from webup import upload
 from webup.models import Output, UploadResult
-from webup.queue import check
+from webup.queue import bucket_name, check
 
 getLogger("webup").setLevel("DEBUG")
 walkable = Path(".") / "tests" / "walkable"
+
+
+def test_bucket_name__bucket() -> None:
+    assert bucket_name("foo", None, None) == "foo"
+
+
+def test_bucket_name__none() -> None:
+    with raises(ValueError):
+        bucket_name(None, None, None)
+
+
+def test_bucket_name__ssm(session: Mock) -> None:
+    with patch("webup.queue.get_ssm_value", return_value="bar") as get_ssm_value:
+        with patch("webup.queue.make_session", return_value=session) as make_session:
+            actual = bucket_name(None, "foo", "eu-east-17")
+
+    make_session.assert_called_once_with("eu-east-17")
+    get_ssm_value.assert_called_once_with("foo", session)
+    assert actual == "bar"
 
 
 def test_check() -> None:
@@ -73,7 +93,7 @@ def test_check__output() -> None:
 def test_upload(dir: str | Path) -> None:
     # We can't query the session because it's in another thread, but we can
     # patch it to prevent any real AWS API calls.
-    with patch("webup.upload_process.Session"):
+    with patch("webup.session.Session"):
         upload(
             bucket="buck",
             concurrent_uploads=2,

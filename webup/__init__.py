@@ -8,12 +8,21 @@ buckets.
 
 ## Usage
 
-To upload a directory with the default configuration:
+To upload a directory with the default configuration, just call `upload`:
 
 ```python
 from webup import upload
 
-upload("./public", "my-bucket")
+upload("./public", bucket="my-bucket")
+```
+
+If the bucket's name is recorded in Systems Manager, pass a parameter name
+instead of a bucket name:
+
+```python
+from webup import upload
+
+upload("./public", ssm_param="/my-platform/buckets/website")
 ```
 
 Some content types are baked-in. To add more content types:
@@ -22,7 +31,7 @@ Some content types are baked-in. To add more content types:
 from webup import set_content_type, upload
 
 set_content_type(".foo", "application/foo")
-upload("./public", "my-bucket")
+upload("./public", bucket="my-bucket")
 ```
 
 All files have the Cache-Control value "max-age=60" by default. To configure this:
@@ -36,7 +45,7 @@ set_maximum_age(".css", 600)
 # Serve all other files with Cache-Control "max-age=300":
 set_default_maximum_age(300)
 
-upload("./public", "my-bucket")
+upload("./public", bucket="my-bucket")
 ```
 
 To perform a dry-run:
@@ -44,7 +53,7 @@ To perform a dry-run:
 ```python
 from webup import upload
 
-upload("./public", "my-bucket", read_only=True)
+upload("./public", bucket="my-bucket", read_only=True)
 ```
 
 ## Configuration
@@ -59,18 +68,17 @@ To set the default content type, call `set_default_maximum_age`.
 
 ### Content-Type headers
 
-| Filename&nbsp; | Content-Type                 |
-|----------------|------------------------------|
-| .css           | text/css                     |
-| .eot           | application/vnd.m-fontobject |
-| .html          | text/html                    |
-| .js            | text/javascript              |
-| .png           | image/png                    |
-| .ttf           | font/ttf                     |
-| .woff          | font/woff                    |
-| .woff2         | font/woff2                   |
-| *              | application/octet-stream     |
-| &nbsp;         |                              |
+| Filename | Content-Type                 |
+|----------|------------------------------|
+| .css     | text/css                     |
+| .eot     | application/vnd.m-fontobject |
+| .html    | text/html                    |
+| .js      | text/javascript              |
+| .png     | image/png                    |
+| .ttf     | font/ttf                     |
+| .woff    | font/woff                    |
+| .woff2   | font/woff2                   |
+| *        | application/octet-stream     |
 
 To add additional content types, call `set_content_type`.
 
