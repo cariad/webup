@@ -8,9 +8,22 @@ from webup.cache_control import cache_control
 from webup.content_type import content_type
 from webup.files import Files
 from webup.models import Output, UploadResult
+from webup.session import make_session
+from webup.ssm import get_ssm_value
 from webup.upload_process import Upload
 
 _logger = getLogger("webup")
+
+
+def bucket_name(bucket: str | None, ssm_param: str | None, region: str | None) -> str:
+    if bucket:
+        return bucket
+
+    if not ssm_param:
+        raise ValueError("Either bucket or ssm_param must be set.")
+
+    session = make_session(region)
+    return get_ssm_value(ssm_param, session)
 
 
 def check(
@@ -43,14 +56,18 @@ def check(
 
 def upload(
     dir: str | Path,
-    bucket: str,
+    bucket: str | None = None,
     concurrent_uploads: int = 8,
     out: IO[str] | None = None,
     read_only: bool = False,
     region: str | None = None,
+    ssm_param: str | None = None,
 ) -> None:
     """
-    Uploads the local directory `dir` to the S3 bucket `bucket`.
+    Uploads the local directory `dir` to an S3 bucket.
+
+    The bucket name must be set directly via `bucket` or read from the Systems
+    Manager parameter named `ssm_param`.
 
     If `region` is not set then the default region will be used.
 
@@ -65,6 +82,8 @@ def upload(
     If `read_only` is truthy then directories will be walked and files will be
     read, but nothing will be uploaded.
     """
+
+    bucket = bucket_name(bucket, ssm_param, region)
 
     if isinstance(dir, str):
         dir = Path(dir)
