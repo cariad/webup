@@ -49,8 +49,11 @@ All files have the Cache-Control value "max-age=60" by default. To configure thi
 ```python
 from webup import set_default_maximum_age, set_maximum_age, upload
 
-# Serve *.css files with Cache-Control "max-age=600":
-set_maximum_age(".css", 600)
+# Serve sw.js with Cache-Control "max-age=0":
+set_maximum_age(r"^sw\.js$", 0)
+
+# Serve all other JavaScript with Cache-Control "max-age=600":
+set_maximum_age(r"^.*\.js$", 600)
 
 # Serve all other files with Cache-Control "max-age=300":
 set_default_maximum_age(300)
