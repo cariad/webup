@@ -123,7 +123,7 @@ def upload(
 
             upload = Upload(
                 bucket=bucket,
-                cache_control=cache_control(file.path.suffix),
+                cache_control=cache_control(file.path.relative_to(dir)),
                 content_type=content_type(file.path.suffix),
                 key=file.key,
                 path=file.path.as_posix(),

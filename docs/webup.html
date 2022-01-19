@@ -103,8 +103,11 @@ instead of a bucket name:</p>
 
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">webup</span> <span class="kn">import</span> <span class="n">set_default_maximum_age</span><span class="p">,</span> <span class="n">set_maximum_age</span><span class="p">,</span> <span class="n">upload</span>
 
-<span class="c1"># Serve *.css files with Cache-Control &quot;max-age=600&quot;:</span>
-<span class="n">set_maximum_age</span><span class="p">(</span><span class="s2">&quot;.css&quot;</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+<span class="c1"># Serve sw.js with Cache-Control &quot;max-age=0&quot;:</span>
+<span class="n">set_maximum_age</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^sw\.js$&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Serve all other JavaScript with Cache-Control &quot;max-age=600&quot;:</span>
+<span class="n">set_maximum_age</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^.*\.js$&quot;</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
 
 <span class="c1"># Serve all other files with Cache-Control &quot;max-age=300&quot;:</span>
 <span class="n">set_default_maximum_age</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
@@ -226,8 +229,11 @@ instead of a bucket name:</p>
 <span class="sd">```python</span>
 <span class="sd">from webup import set_default_maximum_age, set_maximum_age, upload</span>
 
-<span class="sd"># Serve *.css files with Cache-Control &quot;max-age=600&quot;:</span>
-<span class="sd">set_maximum_age(&quot;.css&quot;, 600)</span>
+<span class="sd"># Serve sw.js with Cache-Control &quot;max-age=0&quot;:</span>
+<span class="sd">set_maximum_age(r&quot;^sw\\.js$&quot;, 0)</span>
+
+<span class="sd"># Serve all other JavaScript with Cache-Control &quot;max-age=600&quot;:</span>
+<span class="sd">set_maximum_age(r&quot;^.*\\.js$&quot;, 600)</span>
 
 <span class="sd"># Serve all other files with Cache-Control &quot;max-age=300&quot;:</span>
 <span class="sd">set_default_maximum_age(300)</span>
@@ -382,7 +388,7 @@ instead of a bucket name:</p>
 
             <span class="n">upload</span> <span class="o">=</span> <span class="n">Upload</span><span class="p">(</span>
                 <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
-                <span class="n">cache_control</span><span class="o">=</span><span class="n">cache_control</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="p">),</span>
+                <span class="n">cache_control</span><span class="o">=</span><span class="n">cache_control</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="nb">dir</span><span class="p">)),</span>
                 <span class="n">content_type</span><span class="o">=</span><span class="n">content_type</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="p">),</span>
                 <span class="n">key</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">key</span><span class="p">,</span>
                 <span class="n">path</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">as_posix</span><span class="p">(),</span>
@@ -520,29 +526,24 @@ extension.</p>
 
         
             <span class="def">def</span>
-            <span class="name">set_maximum_age</span><span class="signature">(suffix: str, seconds: int) -&gt; None</span>:
+            <span class="name">set_maximum_age</span><span class="signature">(pattern: str, seconds: int) -&gt; None</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_maximum_age</span><span class="p">(</span><span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seconds</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">set_maximum_age</span><span class="p">(</span><span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seconds</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sets the &quot;max-age&quot; value of the Cache-Control header for files with the</span>
-<span class="sd">    `suffix` filename extension.</span>
-
-<span class="sd">    There are no per-suffix ages set by default.</span>
+<span class="sd">    Sets the &quot;max-age&quot; value of the Cache-Control header for files that match</span>
+<span class="sd">    the given pattern.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">suffix</span> <span class="o">=</span> <span class="n">normalize_suffix</span><span class="p">(</span><span class="n">suffix</span><span class="p">)</span>
-    <span class="n">_max_ages</span><span class="p">[</span><span class="n">suffix</span><span class="p">]</span> <span class="o">=</span> <span class="n">seconds</span>
+    <span class="n">_max_ages</span><span class="p">[</span><span class="n">pattern</span><span class="p">]</span> <span class="o">=</span> <span class="n">seconds</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Sets the "max-age" value of the Cache-Control header for files with the
-<code>suffix</code> filename extension.</p>
-
-<p>There are no per-suffix ages set by default.</p>
+            <div class="docstring"><p>Sets the "max-age" value of the Cache-Control header for files that match
+the given pattern.</p>
 </div>
 
 

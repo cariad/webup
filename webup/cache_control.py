@@ -1,6 +1,6 @@
+from pathlib import Path
+from re import match
 from typing import Dict
-
-from webup.suffix import normalize_suffix
 
 _max_ages: Dict[str, int] = {}
 
@@ -19,39 +19,35 @@ def set_default_maximum_age(seconds: int = 60) -> None:
     _default_max_age = seconds
 
 
-def cache_control(suffix: str) -> str:
+def cache_control(path: Path) -> str:
     """
-    Gets the Cache-Control header for a type of file.
-
-    Arguments:
-        suffix: Filename suffix.
+    Gets the Cache-Control header for a file.
     """
 
-    return f"max-age={max_age(suffix)}"
+    return f"max-age={max_age(path)}"
 
 
-def max_age(suffix: str) -> int:
+def max_age(path: Path) -> int:
     """
-    Gets the maximum age in seconds for a type of file.
-
-    Arguments:
-        suffix: Filename suffix.
+    Gets the maximum age in seconds for a file.
     """
 
-    suffix = normalize_suffix(suffix)
-    return _max_ages.get(suffix, _default_max_age)
+    posix = path.as_posix()
+
+    for pattern in _max_ages:
+        if match(pattern, posix):
+            return _max_ages[pattern]
+
+    return _default_max_age
 
 
-def set_maximum_age(suffix: str, seconds: int) -> None:
+def set_maximum_age(pattern: str, seconds: int) -> None:
     """
-    Sets the "max-age" value of the Cache-Control header for files with the
-    `suffix` filename extension.
-
-    There are no per-suffix ages set by default.
+    Sets the "max-age" value of the Cache-Control header for files that match
+    the given pattern.
     """
 
-    suffix = normalize_suffix(suffix)
-    _max_ages[suffix] = seconds
+    _max_ages[pattern] = seconds
 
 
 set_default_maximum_age()
